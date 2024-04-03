@@ -16,20 +16,52 @@ const BackDrop = () => {
 };
 
 const Overlay = () => {
+  const ctx = useContext(AppContext);
   const siteName = useRef(null);
   const siteUrl = useRef(null);
+  console.log(ctx);
+  if (ctx.editInfo.name) {
+    siteName.current.value = ctx.editInfo.name;
+    siteUrl.current.value = ctx.editInfo.url;
+  }
 
-  const ctx = useContext(AppContext);
+  const addInputToCrud = async () => {
+    try {
+      const response = await fetch(
+        "https://crudcrud.com/api/7cecf540f84b48fca1af4087bc9718a1/bookmarks",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            siteName: siteName.current.value,
+            siteUrl: siteUrl.current.value,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await response.json();
+      console.log(data._id);
+      ctx.setUrlList({
+        name: data.siteName,
+        url: data.siteUrl,
+        id: data._id,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const handleAddClick = (e) => {
     e.preventDefault();
-    const item = {
-      id: Math.random(),
-      name: siteName.current.value,
-      url: siteUrl.current.value,
-    };
-    ctx.setUrlList(item);
-    ctx.setToggleModal(false);
+    if (!siteName.current.value || !siteUrl.current.value) {
+      alert("Inputs Missing");
+      return;
+    } else {
+      addInputToCrud();
+
+      ctx.setToggleModal(false);
+    }
   };
   return (
     <div className=" w-[40%] z-20 absolute top-[30%] left-[30%] ">
